@@ -875,7 +875,7 @@ export default function ResellerDocs() {
           </section>
 
           {/* Section: FAQ */}
-          <section id="faq" className="scroll-mt-6">
+          <section id="faq" className="scroll-mt-32">
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-3">
