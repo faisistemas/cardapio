@@ -25,12 +25,12 @@ export default function Landing() {
   // Dados de exemplo para quando não há revendedor configurado
   const defaultReseller = {
     id: 'demo',
-    name: 'CardápioDigital',
-    company_name: 'CardápioDigital',
+    name: 'FAI SISTEMAS',
+    company_name: 'FAI SISTEMAS',
     landing_page_title: 'Cardápio Digital Completo para seu Negócio',
     landing_page_subtitle: 'Venda mais, pague menos taxas. Sistema completo de pedidos online para restaurantes, bares e lanchonetes.',
-    landing_page_whatsapp: '5511999999999',
-    landing_page_email: 'contato@cardapiodigital.com',
+    landing_page_whatsapp: '5511958239972',
+    landing_page_email: 'faisistemas01@gmail.com',
     landing_page_logo: null,
     primary_color: '45 100% 51%',
     secondary_color: '220 10% 20%',
@@ -141,7 +141,7 @@ export default function Landing() {
   const primaryColor = reseller.primary_color || '45 100% 51%';
   const whatsappLink = reseller.landing_page_whatsapp 
     ? `https://wa.me/${reseller.landing_page_whatsapp}?text=Olá! Tenho interesse no sistema de cardápio digital.`
-    : `https://wa.me/5511999999999?text=Olá! Tenho interesse no sistema de cardápio digital.`;
+    : `https://wa.me/5511958239972?text=Olá! Tenho interesse no sistema de cardápio digital.`;
 
   const testimonials = (reseller as any).landing_testimonials || defaultReseller.landing_testimonials;
   const faq = (reseller as any).landing_faq || defaultReseller.landing_faq;

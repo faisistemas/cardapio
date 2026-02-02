@@ -45,7 +45,7 @@ export const MenuSection = forwardRef<HTMLDivElement, MenuSectionProps>(
         </div>
 
         {/* Products Grid */}
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {products.map((product, index) => (
             <div 
               key={product.id}

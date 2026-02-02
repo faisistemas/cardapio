@@ -1,7 +1,7 @@
 {
-  "name": "Cardápio Digital",
-  "short_name": "Cardápio",
-  "description": "Cardápio digital e delivery - Faça seu pedido online",
+  "name": "FAI Cardápio Digital",
+  "short_name": "FAI Cardápio",
+  "description": "Sistema completo para cardápio digital e gestão de pedidos.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
