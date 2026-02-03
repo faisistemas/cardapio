@@ -14,6 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Pencil, Trash2, User, Phone, Loader2, DollarSign, Key, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { useDemoGuard } from '@/hooks/useDemoGuard';
+import { getRestaurantIdForCurrentUser } from "@/integrations/supabase/restaurant";
+
 
 interface Waiter {
   id: string;
@@ -96,61 +98,69 @@ export default function Waiters() {
     },
   });
 
-  // Create waiter
-  const createMutation = useMutation({
-    mutationFn: async (data: { name: string; phone: string; pin: string }) => {
-      const { data: newWaiter, error } = await supabase
-        .from('waiters')
-        .insert({
-          name: data.name,
-          phone: data.phone || null,
-          pin: data.pin || null,
-          is_active: true,
-        })
-        .select()
-        .single();
 
-      if (error) throw error;
-      return newWaiter;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['waiters'] });
-      toast({ title: 'Garçom cadastrado com sucesso!' });
-      setIsDialogOpen(false);
-      setFormData({ name: '', phone: '', pin: '' });
-      setShowPin(false);
-    },
-    onError: () => {
-      toast({ title: 'Erro ao cadastrar garçom', variant: 'destructive' });
-    },
-  });
+// Create waiter
+const createMutation = useMutation({
+  mutationFn: async (data: { name: string; phone: string; pin: string }) => {
+    // Buscar o restaurante do usuário logado
+    const restaurantId = await getRestaurantIdForCurrentUser();
 
-  // Update waiter
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Waiter> }) => {
-      const { data: updated, error } = await supabase
-        .from('waiters')
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
+    const { data: newWaiter, error } = await supabase
+      .from('waiters')
+      .insert({
+        name: data.name,
+        phone: data.phone || null,
+        pin: data.pin || null,
+        is_active: true,
+        restaurant_id: restaurantId, // 🔥 ESSA LINHA É O QUE FALTAVA
+      })
+      .select()
+      .single();
 
-      if (error) throw error;
-      return updated;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['waiters'] });
-      toast({ title: 'Garçom atualizado!' });
-      setIsDialogOpen(false);
-      setEditingWaiter(null);
-      setFormData({ name: '', phone: '', pin: '' });
-      setShowPin(false);
-    },
-    onError: () => {
-      toast({ title: 'Erro ao atualizar', variant: 'destructive' });
-    },
-  });
+    if (error) throw error;
+    return newWaiter;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['waiters'] });
+    toast({ title: 'Garçom cadastrado com sucesso!' });
+    setIsDialogOpen(false);
+    setFormData({ name: '', phone: '', pin: '' });
+    setShowPin(false);
+  },
+  onError: () => {
+    toast({ title: 'Erro ao cadastrar garçom', variant: 'destructive' });
+  },
+});
 
+const updateMutation = useMutation({
+  mutationFn: async ({ id, data }: { id: string; data: Partial<Waiter> }) => {
+    const payload = {
+      ...data,
+      pin: data.pin?.trim() === '' ? null : data.pin,
+    };
+
+    const { error } = await supabase
+      .from('waiters')
+      .update(payload)
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  },
+
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['waiters'] });
+    toast({ title: 'Garçom atualizado!' });
+    setIsDialogOpen(false);
+    setEditingWaiter(null);
+    setFormData({ name: '', phone: '', pin: '' });
+    setShowPin(false);
+  },
+  onError: () => {
+    toast({ title: 'Erro ao atualizar', variant: 'destructive' });
+  },
+});
+  
   // Delete waiter
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {

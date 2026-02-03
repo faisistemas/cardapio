@@ -123,7 +123,7 @@ export function SetupWizard({ store, open, onComplete }: SetupWizardProps) {
             <div>
               <label className="text-sm font-medium text-foreground">Logo</label>
               <ImageUpload
-                bucket="store-assets"
+                bucket="storage-assets"
                 currentUrl={formData.logo_url}
                 onUpload={(url) => setFormData({ ...formData, logo_url: url })}
                 onRemove={() => setFormData({ ...formData, logo_url: '' })}
@@ -133,7 +133,7 @@ export function SetupWizard({ store, open, onComplete }: SetupWizardProps) {
             <div>
               <label className="text-sm font-medium text-foreground">Imagem de Capa</label>
               <ImageUpload
-                bucket="store-assets"
+                bucket="storage-assets"
                 currentUrl={formData.cover_url}
                 onUpload={(url) => setFormData({ ...formData, cover_url: url })}
                 onRemove={() => setFormData({ ...formData, cover_url: '' })}

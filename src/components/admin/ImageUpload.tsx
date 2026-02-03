@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 interface ImageUploadProps {
-  bucket: 'product-images' | 'store-assets';
+  bucket: 'product-images' | 'storage-assets';
   currentUrl?: string | null;
   onUpload: (url: string) => void;
   onRemove?: () => void;

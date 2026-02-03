@@ -80,7 +80,7 @@ export function BrandSettings({ className }: BrandSettingsProps) {
             Logo (também será o ícone do app instalado)
           </Label>
           <ImageUpload
-            bucket="store-assets"
+            bucket="storage-assets"
             currentUrl={formData.logo_url}
             onUpload={(url) => setFormData({ ...formData, logo_url: url })}
             onRemove={() => setFormData({ ...formData, logo_url: '' })}

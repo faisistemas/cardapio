@@ -285,7 +285,7 @@ const AdminCategories = () => {
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Imagem</label>
               <ImageUpload
-                bucket="store-assets"
+                bucket="storage-assets"
                 currentUrl={formData.image_url}
                 onUpload={(url) => setFormData({ ...formData, image_url: url })}
                 onRemove={() => setFormData({ ...formData, image_url: null })}
