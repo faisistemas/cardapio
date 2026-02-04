@@ -175,7 +175,6 @@ export function useCreateRestaurant() {
       if (!reseller?.id) throw new Error('Reseller not found');
 
       const trialDays = Number(restaurant.trial_days) || 0;
-      // const trialDays = restaurant.trial_days || 0;
 
       const startDate = new Date();
       const endDate =

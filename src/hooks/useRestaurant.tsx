@@ -102,11 +102,6 @@ if (restaurant?.subscription_status === 'trial' && restaurant.subscription_end_d
       ? 'A assinatura deste estabelecimento está suspensa por falta de pagamento.'
       : 'A assinatura deste estabelecimento foi cancelada.'
   : null;
-  // const blockReason = isBlocked 
-  //   ? restaurant?.subscription_status === 'suspended' 
-  //     ? 'A assinatura deste estabelecimento está suspensa por falta de pagamento.'
-  //     : 'A assinatura deste estabelecimento foi cancelada.'
-  //   : null;
 
   useEffect(() => {
     if (restaurant?.id) {
