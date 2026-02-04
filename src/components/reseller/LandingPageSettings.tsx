@@ -58,37 +58,70 @@ export function LandingPageSettings({ reseller, onUpdate }: LandingPageSettingsP
     }
 
     setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${reseller.id}-landing-logo.${fileExt}`;
-      const filePath = `landing-logos/${fileName}`;
+try {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${reseller.id}-landing-logo.${fileExt}`;
+  const filePath = `${fileName}`; // sem "landing-logos/" aqui
 
-      const { error: uploadError } = await supabase.storage
-        .from('public')
-        .upload(filePath, file, { upsert: true });
+  const { error: uploadError } = await supabase.storage
+    .from('landing-logos') // nome correto do bucket
+    .upload(filePath, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+  if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('public')
-        .getPublicUrl(filePath);
+  const { data: { publicUrl } } = supabase.storage
+    .from('landing-logos')
+    .getPublicUrl(filePath);
 
-      setFormData({ ...formData, landing_page_logo: publicUrl });
-      
-      toast({
-        title: 'Logo enviada',
-        description: 'A logo foi carregada com sucesso',
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao enviar logo',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
-    }
+  setFormData({ ...formData, landing_page_logo: publicUrl });
+
+  toast({
+    title: 'Logo enviada',
+    description: 'A logo foi carregada com sucesso',
+  });
+} catch (error) {
+  console.error(error);
+  toast({
+    title: 'Erro ao enviar logo',
+    description: error.message,
+    variant: 'destructive',
+  });
+} finally {
+  setUploading(false);
+}
   };
+  //   setUploading(true);
+  //   try {
+  //     const fileExt = file.name.split('.').pop();
+  //     const fileName = `${reseller.id}-landing-logo.${fileExt}`;
+  //     const filePath = `landing-logos/${fileName}`;
+
+  //     const { error: uploadError } = await supabase.storage
+  //       .from('public')
+  //       .upload(filePath, file, { upsert: true });
+
+  //     if (uploadError) throw uploadError;
+
+  //     const { data: { publicUrl } } = supabase.storage
+  //       .from('public')
+  //       .getPublicUrl(filePath);
+
+  //     setFormData({ ...formData, landing_page_logo: publicUrl });
+      
+  //     toast({
+  //       title: 'Logo enviada',
+  //       description: 'A logo foi carregada com sucesso',
+  //     });
+  //   } catch (error: any) {
+  //     toast({
+  //       title: 'Erro ao enviar logo',
+  //       description: error.message,
+  //       variant: 'destructive',
+  //     });
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

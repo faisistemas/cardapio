@@ -73,18 +73,40 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
 
   // Determinar qual restaurante usar
   const restaurant = slug ? restaurantBySlug : restaurantByUser;
+  // Verificar se o trial expirou
+let isTrialExpired = false;
+
+if (restaurant?.subscription_status === 'trial' && restaurant.subscription_end_date) {
+  const now = new Date();
+  const end = new Date(restaurant.subscription_end_date);
+
+  if (now > end) {
+    isTrialExpired = true;
+  }
+}
   const isLoading = slug ? loadingBySlug : loadingByUser;
   const error = slug ? slugError : userError;
 
   // Verificar se restaurante está bloqueado
-  const isBlocked = restaurant?.subscription_status === 'suspended' || 
-                    restaurant?.subscription_status === 'cancelled';
+  const isBlocked =
+  restaurant?.subscription_status === 'suspended' ||
+  restaurant?.subscription_status === 'cancelled' ||
+  isTrialExpired;
+  // const isBlocked = restaurant?.subscription_status === 'suspended' || 
+  //                   restaurant?.subscription_status === 'cancelled';
   
-  const blockReason = isBlocked 
-    ? restaurant?.subscription_status === 'suspended' 
+  const blockReason = isBlocked
+  ? isTrialExpired
+    ? 'O período de teste deste estabelecimento expirou.'
+    : restaurant?.subscription_status === 'suspended'
       ? 'A assinatura deste estabelecimento está suspensa por falta de pagamento.'
       : 'A assinatura deste estabelecimento foi cancelada.'
-    : null;
+  : null;
+  // const blockReason = isBlocked 
+  //   ? restaurant?.subscription_status === 'suspended' 
+  //     ? 'A assinatura deste estabelecimento está suspensa por falta de pagamento.'
+  //     : 'A assinatura deste estabelecimento foi cancelada.'
+  //   : null;
 
   useEffect(() => {
     if (restaurant?.id) {

@@ -1,9 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Reseller, Restaurant, RestaurantAdmin, SubscriptionPayment, SubscriptionStatus, PaymentStatus } from '@/types/reseller';
+import {
+  Reseller,
+  Restaurant,
+  RestaurantAdmin,
+  SubscriptionPayment,
+} from '@/types/reseller';
 import { useAuth } from './useAuth';
 
-// Hook para verificar se o usuário é revendedor
+/* ============================================================
+   REVENDEDOR
+============================================================ */
+
 export function useIsReseller() {
   const { user } = useAuth();
   
@@ -26,7 +34,6 @@ export function useIsReseller() {
   });
 }
 
-// Hook para obter dados do revendedor logado
 export function useCurrentReseller() {
   const { user } = useAuth();
   
@@ -48,7 +55,10 @@ export function useCurrentReseller() {
   });
 }
 
-// Hook para listar restaurantes do revendedor
+/* ============================================================
+   RESTAURANTES DO REVENDEDOR
+============================================================ */
+
 export function useResellerRestaurants() {
   const { data: reseller } = useCurrentReseller();
   
@@ -70,7 +80,6 @@ export function useResellerRestaurants() {
   });
 }
 
-// Hook para obter detalhes de um restaurante específico
 export function useRestaurantDetails(restaurantId: string | undefined) {
   return useQuery({
     queryKey: ['restaurant-details', restaurantId],
@@ -90,7 +99,6 @@ export function useRestaurantDetails(restaurantId: string | undefined) {
   });
 }
 
-// Hook para listar admins de um restaurante
 export function useRestaurantAdmins(restaurantId: string | undefined) {
   return useQuery({
     queryKey: ['restaurant-admins', restaurantId],
@@ -110,7 +118,6 @@ export function useRestaurantAdmins(restaurantId: string | undefined) {
   });
 }
 
-// Hook para listar pagamentos de um restaurante
 export function useRestaurantPayments(restaurantId: string | undefined) {
   return useQuery({
     queryKey: ['restaurant-payments', restaurantId],
@@ -130,13 +137,11 @@ export function useRestaurantPayments(restaurantId: string | undefined) {
   });
 }
 
-// Hook para listar todos os pagamentos do revendedor
 export function useResellerPayments() {
-  const { data: reseller } = useCurrentReseller();
   const { data: restaurants } = useResellerRestaurants();
   
   return useQuery({
-    queryKey: ['reseller-payments', reseller?.id, restaurants?.map(r => r.id)],
+    queryKey: ['reseller-payments', restaurants?.map(r => r.id)],
     queryFn: async () => {
       if (!restaurants?.length) return [];
       
@@ -155,49 +160,62 @@ export function useResellerPayments() {
   });
 }
 
-// Mutations
+/* ============================================================
+   🔥 CRIAÇÃO DE RESTAURANTE (COM TRIAL AUTOMÁTICO)
+============================================================ */
 
 export function useCreateRestaurant() {
   const queryClient = useQueryClient();
   const { data: reseller } = useCurrentReseller();
   
   return useMutation({
-    mutationFn: async (restaurant: Omit<Restaurant, 'id' | 'created_at' | 'updated_at' | 'reseller_id'>) => {
+    mutationFn: async (
+      restaurant: Omit<Restaurant, 'id' | 'created_at' | 'updated_at' | 'reseller_id'>
+    ) => {
       if (!reseller?.id) throw new Error('Reseller not found');
-      
+
+      const trialDays = Number(restaurant.trial_days) || 0;
+      // const trialDays = restaurant.trial_days || 0;
+
+      const startDate = new Date();
+      const endDate =
+        trialDays > 0
+          ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000)
+          : null;
+
       const { data, error } = await supabase
         .from('restaurants')
         .insert({
           ...restaurant,
           reseller_id: reseller.id,
+          subscription_status: trialDays > 0 ? 'trial' : 'active',
+          subscription_start_date: startDate.toISOString(),
+          subscription_end_date: endDate ? endDate.toISOString() : null,
         })
         .select()
         .single();
 
       if (error) throw error;
-      
-      // Automatically create store_config for the new restaurant
-      const { error: storeConfigError } = await supabase
-        .from('store_config')
-        .insert({
-          restaurant_id: data.id,
-          name: restaurant.name,
-          primary_color: (reseller as any)?.primary_color || null,
-          secondary_color: (reseller as any)?.secondary_color || null,
-        });
 
-      if (storeConfigError) {
-        console.error('Error creating store_config:', storeConfigError);
-        // Don't throw - restaurant was created successfully
-      }
-      
+      await supabase.from('store_config').insert({
+        restaurant_id: data.id,
+        name: restaurant.name,
+        primary_color: (reseller as any)?.primary_color || null,
+        secondary_color: (reseller as any)?.secondary_color || null,
+      });
+
       return data as Restaurant;
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reseller-restaurants'] });
     },
   });
 }
+
+/* ============================================================
+   OUTRAS MUTATIONS
+============================================================ */
 
 export function useUpdateRestaurant() {
   const queryClient = useQueryClient();
@@ -321,7 +339,10 @@ export function useUpdatePayment() {
   });
 }
 
-// Estatísticas do revendedor
+/* ============================================================
+   ESTATÍSTICAS DO REVENDEDOR
+============================================================ */
+
 export function useResellerStats() {
   const { data: restaurants } = useResellerRestaurants();
   const { data: payments } = useResellerPayments();
@@ -331,29 +352,30 @@ export function useResellerStats() {
   const trialRestaurants = restaurants?.filter(r => r.subscription_status === 'trial').length || 0;
   const suspendedRestaurants = restaurants?.filter(r => r.subscription_status === 'suspended').length || 0;
   
-  const monthlyRevenue = restaurants
-    ?.filter(r => r.subscription_status === 'active')
-    .reduce((sum, r) => sum + r.monthly_fee, 0) || 0;
+  const monthlyRevenue =
+    restaurants?.filter(r => r.subscription_status === 'active')
+      .reduce((sum, r) => sum + r.monthly_fee, 0) || 0;
   
   const pendingPayments = payments?.filter(p => p.status === 'pending').length || 0;
   const overduePayments = payments?.filter(p => p.status === 'overdue').length || 0;
   
-  // Métricas do Mercado Pago
   const mpActiveSubscriptions = restaurants?.filter(r => r.mp_subscription_status === 'authorized').length || 0;
   const mpPendingSubscriptions = restaurants?.filter(r => r.mp_subscription_status === 'pending').length || 0;
   const mpPausedSubscriptions = restaurants?.filter(r => r.mp_subscription_status === 'paused').length || 0;
   
-  // Pagamentos recebidos este mês via MP
   const currentMonth = new Date();
   const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-  const mpPaidThisMonth = payments
-    ?.filter(p => 
-      p.status === 'paid' && 
-      p.payment_date && 
-      new Date(p.payment_date) >= monthStart &&
-      p.mp_payment_id
-    )
-    .reduce((sum, p) => sum + p.amount, 0) || 0;
+  
+  const mpPaidThisMonth =
+    payments
+      ?.filter(
+        p =>
+          p.status === 'paid' &&
+          p.payment_date &&
+          new Date(p.payment_date) >= monthStart &&
+          p.mp_payment_id
+      )
+      .reduce((sum, p) => sum + p.amount, 0) || 0;
   
   return {
     totalRestaurants,
@@ -363,7 +385,6 @@ export function useResellerStats() {
     monthlyRevenue,
     pendingPayments,
     overduePayments,
-    // Métricas MP
     mpActiveSubscriptions,
     mpPendingSubscriptions,
     mpPausedSubscriptions,
