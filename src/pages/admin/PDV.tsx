@@ -111,37 +111,53 @@ export default function PDV() {
       {view === 'map' && (
         <div className="space-y-4">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Mapa de Mesas</h1>
-              <p className="text-muted-foreground">
-                Gerencie mesas e pedidos do salão
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="default"
-                className="bg-green-600 hover:bg-green-700"
-                onClick={() => setQuickSaleModalOpen(true)}
-              >
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Venda Rápida
-              </Button>
-              <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
-                <History className="h-4 w-4 mr-2" />
-                Histórico
-              </Button>
-              <Button variant="outline" onClick={() => setManagementModalOpen(true)}>
-                <Settings2 className="h-4 w-4 mr-2" />
-                Gerenciar
-              </Button>
-              <Button onClick={() => setManagementModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Mesa
-              </Button>
-            </div>
-          </div>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+  
+  <div className="text-center">
+  <h1 className="text-2xl font-bold text-foreground">Mapa de Mesas</h1>
+  <p className="text-muted-foreground">
+    Gerencie mesas e pedidos do salão
+  </p>
+</div>
+ 
+<div className="grid grid-cols-2 gap-2 w-full md:flex md:w-auto md:gap-2">
+  <Button 
+    variant="default"
+    className="bg-green-600 hover:bg-green-700 w-full"
+    onClick={() => setQuickSaleModalOpen(true)}
+  >
+    <ShoppingBag className="h-4 w-4 mr-2" />
+    Venda Rápida
+  </Button>
 
+  <Button 
+    variant="outline"
+    className="w-full"
+    onClick={() => setHistoryModalOpen(true)}
+  >
+    <History className="h-4 w-4 mr-2" />
+    Histórico
+  </Button>
+
+  <Button 
+    variant="outline"
+    className="w-full"
+    onClick={() => setManagementModalOpen(true)}
+  >
+    <Settings2 className="h-4 w-4 mr-2" />
+    Gerenciar
+  </Button>
+
+  <Button 
+    className="w-full"
+    onClick={() => setManagementModalOpen(true)}
+  >
+    <Plus className="h-4 w-4 mr-2" />
+    Nova Mesa
+  </Button>
+</div>
+</div>
+  
           {/* Table Map */}
           <TableMap
             onTableClick={handleTableClick}
