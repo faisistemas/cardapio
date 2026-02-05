@@ -287,7 +287,8 @@ export default function Landing() {
                   <img 
                     src={reseller.landing_page_logo} 
                     alt={reseller.company_name || reseller.name}
-                    className="h-10 w-auto object-contain brightness-0 invert"
+                    // className="h-10 w-auto object-contain brightness-0 invert"
+                    className="h-10 w-auto object-contain"
                   />
                 ) : (
                   <div className="h-10 w-10 rounded-xl bg-background/20 flex items-center justify-center font-bold">

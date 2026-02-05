@@ -160,7 +160,7 @@ export function QuickSaleCheckout({
         name: item.productName,
         quantity: item.quantity,
         unitPrice: item.unitPrice + item.addons.reduce((s, a) => s + a.price, 0),
-        observation: item.addons.length > 0 
+        observation: item.addons.length > 0
           ? item.addons.map(a => a.optionName).join(', ') + (item.observation ? ` - ${item.observation}` : '')
           : item.observation,
       })),
@@ -201,7 +201,7 @@ export function QuickSaleCheckout({
           <DialogTitle>Finalizar Venda</DialogTitle>
         </DialogHeader>
 
-            <div className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
+        <div className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
           {/* Items Summary */}
           <div className="border rounded-xl p-4">
             <h3 className="font-semibold mb-2">
@@ -279,60 +279,35 @@ export function QuickSaleCheckout({
         </div>
 
         {/* Actions */}
-<div className="flex flex-col gap-3 pt-4 border-t md:flex-row md:justify-center">
-  <Button
-    variant="outline"
-    className="w-full md:w-auto"
-    onClick={onBack}
-    disabled={isProcessing}
-  >
-    <ArrowLeft className="h-4 w-4 mr-2" />
-    Voltar
-  </Button>
-
-  <Button
-    variant="outline"
-    className="w-full md:w-auto"
-    onClick={handlePrint}
-    disabled={isProcessing}
-  >
-    <Printer className="h-4 w-4 mr-2" />
-    Imprimir
-  </Button>
-
-  <Button
-    className="w-full md:w-auto bg-green-600 hover:bg-green-700"
-    onClick={handleFinalize}
-    disabled={isProcessing}
-  >
-    {isProcessing ? 'Processando...' : 'Confirmar Pagamento'}
-  </Button>
-</div>
-        {/* <div className="flex gap-3 pt-4 border-t">
+        <div className="flex flex-col gap-3 pt-4 border-t md:flex-row md:justify-center">
           <Button
             variant="outline"
+            className="w-full md:w-auto"
             onClick={onBack}
             disabled={isProcessing}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
+
           <Button
             variant="outline"
+            className="w-full md:w-auto"
             onClick={handlePrint}
             disabled={isProcessing}
           >
             <Printer className="h-4 w-4 mr-2" />
             Imprimir
           </Button>
+
           <Button
-            className="flex-1"
+            className="w-full md:w-auto bg-green-600 hover:bg-green-700"
             onClick={handleFinalize}
             disabled={isProcessing}
           >
             {isProcessing ? 'Processando...' : 'Confirmar Pagamento'}
           </Button>
-        </div> */}
+        </div>
       </DialogContent>
     </Dialog>
   );

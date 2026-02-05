@@ -47,7 +47,7 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [items, setItems] = useState<QuickSaleItem[]>([]);
   const [customerName, setCustomerName] = useState('');
-  
+
   // Product selection state
   const [selectedProduct, setSelectedProduct] = useState<{
     id: string;
@@ -93,7 +93,7 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
       if (existing) {
         return prev.filter(a => a.optionId !== option.id);
       }
-      
+
       // If max_selections is 1, replace any existing selection in this group
       if (group.max_selections === 1) {
         const filtered = prev.filter(a => a.groupId !== group.id);
@@ -105,13 +105,13 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
           price: option.price,
         }];
       }
-      
+
       // Check if we've reached max selections for this group
       const groupSelections = prev.filter(a => a.groupId === group.id);
       if (groupSelections.length >= group.max_selections) {
         return prev;
       }
-      
+
       return [...prev, {
         groupId: group.id,
         groupName: group.title,
@@ -137,7 +137,7 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
     };
 
     setItems(prev => [...prev, newItem]);
-    
+
     // Reset selection
     setSelectedProduct(null);
     setQuantity(1);
@@ -161,7 +161,7 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
   const handleCheckout = () => {
     if (items.length === 0) return;
     onCheckout(items, customerName);
-    
+
     // Reset everything
     setItems([]);
     setCustomerName('');
@@ -183,17 +183,12 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
       <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-center gap-2 text-center">
-  <ShoppingBag className="h-5 w-5" />
-  <span>Venda Rápida / Balcão</span>
-</DialogTitle>
-          {/* <DialogTitle className="flex flex-col items-center gap-2 text-center">
             <ShoppingBag className="h-5 w-5" />
-            Venda Rápida / Balcão
-          </DialogTitle> */}
-        </DialogHeader>
+            <span>Venda Rápida / Balcão</span>
+          </DialogTitle>
 
-        {/* <div className="flex flex-1 gap-4 min-h-0"> */}
-          <div className="flex flex-col gap-4 min-h-0 md:flex-row">
+        </DialogHeader>
+        <div className="flex flex-col gap-4 min-h-0 md:flex-row">
           {/* Left side - Product selection */}
           <div className="flex-1 flex flex-col min-w-0">
             {!selectedProduct ? (
@@ -210,8 +205,7 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
                 </div>
 
                 {/* Categories */}
-                {/* <div className="flex gap-2 overflow-x-auto pb-2 mb-3"> */}
-                  <div className="flex gap-2 overflow-x-auto pb-2 mb-3 justify-center md:justify-start">
+                <div className="flex gap-2 overflow-x-auto pb-2 mb-3 justify-center md:justify-start">
                   <Button
                     variant={selectedCategory === null ? 'default' : 'outline'}
                     size="sm"
@@ -399,97 +393,12 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
           </div>
 
           {/* Right side - Cart */}
-<div className="
+          <div className="
   w-full 
   flex flex-col 
   border-t pt-4 mt-4 
   md:w-72 md:border-t-0 md:border-l md:pl-4 md:mt-0
 ">
-  <div className="mb-3">
-    <Input
-      placeholder="Nome do cliente (opcional)"
-      value={customerName}
-      onChange={(e) => setCustomerName(e.target.value)}
-    />
-  </div>
-
-  <div className="flex items-center justify-between mb-2">
-    <h3 className="font-semibold">Carrinho</h3>
-    <Badge variant="secondary">{items.length} itens</Badge>
-  </div>
-
-  <ScrollArea className="flex-1 min-h-0">
-    {items.length === 0 ? (
-      <div className="text-center py-8 text-muted-foreground text-sm">
-        Nenhum item adicionado
-      </div>
-    ) : (
-      <div className="space-y-2 pr-2">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="bg-muted rounded-lg p-3"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm line-clamp-1">
-                  {item.quantity}x {item.productName}
-                </p>
-
-                {item.addons.length > 0 && (
-                  <p className="text-xs text-muted-foreground line-clamp-1">
-                    {item.addons.map(a => a.optionName).join(', ')}
-                  </p>
-                )}
-
-                {item.observation && (
-                  <p className="text-xs text-muted-foreground italic line-clamp-1">
-                    {item.observation}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-primary">
-                  {formatCurrency(item.totalPrice)}
-                </span>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-destructive hover:text-destructive"
-                  onClick={() => handleRemoveItem(item.id)}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-  </ScrollArea>
-
-  <div className="border-t pt-3 mt-3 space-y-3">
-    <div className="flex items-center justify-between">
-      <span className="font-semibold">Total</span>
-      <span className="text-xl font-bold text-primary">
-        {formatCurrency(cartTotal)}
-      </span>
-    </div>
-
-    <Button
-      className="w-full"
-      size="lg"
-      disabled={items.length === 0}
-      onClick={handleCheckout}
-    >
-      Finalizar
-      <ChevronRight className="h-4 w-4 ml-2" />
-    </Button>
-  </div>
-</div>
-          {/* <div className="w-72 flex flex-col border-l pl-4">
             <div className="mb-3">
               <Input
                 placeholder="Nome do cliente (opcional)"
@@ -520,21 +429,25 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
                           <p className="font-medium text-sm line-clamp-1">
                             {item.quantity}x {item.productName}
                           </p>
+
                           {item.addons.length > 0 && (
                             <p className="text-xs text-muted-foreground line-clamp-1">
                               {item.addons.map(a => a.optionName).join(', ')}
                             </p>
                           )}
+
                           {item.observation && (
                             <p className="text-xs text-muted-foreground italic line-clamp-1">
                               {item.observation}
                             </p>
                           )}
                         </div>
+
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-sm text-primary">
                             {formatCurrency(item.totalPrice)}
                           </span>
+
                           <Button
                             variant="ghost"
                             size="icon"
@@ -558,7 +471,7 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
                   {formatCurrency(cartTotal)}
                 </span>
               </div>
-              
+
               <Button
                 className="w-full"
                 size="lg"
@@ -569,7 +482,7 @@ export function QuickSaleModal({ open, onOpenChange, onCheckout }: QuickSaleModa
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
-          </div> */}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

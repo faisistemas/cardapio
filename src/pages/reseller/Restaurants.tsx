@@ -105,7 +105,8 @@ function RestaurantsContent() {
               key={restaurant.id}
               restaurant={restaurant}
               onView={(id) => navigate(`/reseller/restaurants/${id}`)}
-              onEdit={(id) => navigate(`/reseller/restaurants/${id}/edit`)}
+              // onEdit={(id) => navigate(`/reseller/restaurants/${id}/edit`)}
+              onEdit={(id) => navigate(`/reseller/restaurants/${id}`)}
               onManage={(id) => window.open(`/r/${restaurant.slug}/admin`, '_blank')}
             />
           ))}
