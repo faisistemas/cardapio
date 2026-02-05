@@ -620,7 +620,7 @@ const Checkout = () => {
 
             {/* Add More Items */}
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate(basePath)}
               className="flex items-center justify-between w-full p-4 rounded-2xl bg-card shadow-card"
             >
               <div className="flex items-center gap-3">

@@ -53,7 +53,7 @@ export interface CreateOrderItemData {
 }
 
 // Hook para buscar restaurant_id pelo slug (para clientes)
-function useRestaurantIdBySlug() {
+export function useRestaurantIdBySlug() {
   const { slug } = useParams<{ slug: string }>();
   
   const { data } = useQuery({
