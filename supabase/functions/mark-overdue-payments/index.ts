@@ -2,10 +2,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 serve(async () => {
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-  );
+ const supabaseClient = createClient(
+  "https://ttoxupujpljbkkdgcgpv.supabase.co", // URL fixa do projeto
+  "sb_secret_fE3Bw..." // sua secret key completa
+);
 
   console.log("Rodando cron job: marcar pagamentos overdue");
 
