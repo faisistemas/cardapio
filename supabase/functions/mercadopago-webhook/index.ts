@@ -218,12 +218,33 @@ async function handlePaymentEvent(supabaseClient: any, paymentId: string) {
         paymentStatus = 'pending';
         break;
       case 'rejected':
+        paymentStatus = 'overdue'; // falha no pagamento → inadimplência
+        break;
       case 'cancelled':
-        paymentStatus = 'cancelled';
+      case 'refunded':
+      case 'charged_back':
+        paymentStatus = 'cancelled'; // cancelado ou estornado
         break;
       default:
         paymentStatus = 'pending';
     }
+
+    // let paymentStatus: string;
+    // switch (payment.status) {
+    //   case 'approved':
+    //     paymentStatus = 'paid';
+    //     break;
+    //   case 'pending':
+    //   case 'in_process':
+    //     paymentStatus = 'pending';
+    //     break;
+    //   case 'rejected':
+    //   case 'cancelled':
+    //     paymentStatus = 'cancelled';
+    //     break;
+    //   default:
+    //     paymentStatus = 'pending';
+    // }
 
     // Create payment record
     const { error: insertError } = await supabaseClient
@@ -325,7 +346,7 @@ async function createRestaurantFromLead(supabaseClient: any, leadId: string) {
 
     if (existingRestaurant) {
       console.log('Restaurant already exists for this email:', existingRestaurant.id);
-      
+
       // Update lead with restaurant info
       await supabaseClient
         .from('landing_page_leads')
@@ -334,7 +355,7 @@ async function createRestaurantFromLead(supabaseClient: any, leadId: string) {
           updated_at: new Date().toISOString()
         })
         .eq('id', leadId);
-      
+
       return;
     }
 
@@ -357,7 +378,7 @@ async function createRestaurantFromLead(supabaseClient: any, leadId: string) {
         .select('id')
         .eq('slug', slug)
         .maybeSingle();
-      
+
       if (!existingSlug) {
         slugExists = false;
       } else {
@@ -401,7 +422,7 @@ async function createRestaurantFromLead(supabaseClient: any, leadId: string) {
 
     if (restaurantError) {
       console.error('Error creating restaurant:', restaurantError);
-      
+
       // Update lead with error info
       await supabaseClient
         .from('landing_page_leads')
@@ -410,7 +431,7 @@ async function createRestaurantFromLead(supabaseClient: any, leadId: string) {
           updated_at: new Date().toISOString()
         })
         .eq('id', leadId);
-      
+
       return;
     }
 
@@ -473,7 +494,7 @@ async function createRestaurantFromLead(supabaseClient: any, leadId: string) {
 
       if (createUserError) {
         console.error('Error creating user:', createUserError);
-        
+
         // Update lead with partial success info
         await supabaseClient
           .from('landing_page_leads')
@@ -482,7 +503,7 @@ async function createRestaurantFromLead(supabaseClient: any, leadId: string) {
             updated_at: new Date().toISOString()
           })
           .eq('id', leadId);
-        
+
         return;
       }
 
@@ -505,7 +526,7 @@ async function createRestaurantFromLead(supabaseClient: any, leadId: string) {
     }
 
     // Update lead with success info
-    const successNote = userCreated 
+    const successNote = userCreated
       ? `Restaurante criado automaticamente!\nID: ${restaurant.id}\nSlug: ${slug}\nSenha temporária: ${tempPassword}\n(Orientar cliente a trocar a senha no primeiro acesso)`
       : `Restaurante criado automaticamente!\nID: ${restaurant.id}\nSlug: ${slug}\n(Usuário já existia, vincular ao novo restaurante)`;
 
@@ -516,6 +537,26 @@ async function createRestaurantFromLead(supabaseClient: any, leadId: string) {
         updated_at: new Date().toISOString()
       })
       .eq('id', leadId);
+
+    // ... criação do restaurante, store_config, business_hours, usuário/admin ...
+
+    // Criar primeiro pagamento agendado
+    const { error: paymentError } = await supabaseClient
+      .from('subscription_payments')
+      .insert({
+        restaurant_id: restaurant.id,
+        amount: setupFee + monthlyFee,
+        due_date: subscriptionEndDate.toISOString(), // fim do trial
+        status: 'pending',
+        notes: 'Primeira cobrança automática após trial',
+        mp_external_reference: `lead_${leadId}`
+      });
+
+    if (paymentError) {
+      console.error('Erro ao criar pagamento inicial:', paymentError);
+    } else {
+      console.log(`Pagamento inicial criado para restaurante ${restaurant.id}`);
+    }
 
     console.log('Restaurant creation complete:', {
       restaurantId: restaurant.id,

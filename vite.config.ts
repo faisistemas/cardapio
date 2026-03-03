@@ -3,10 +3,10 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig({
-  server: {
-    host: "::",
-    port: 8080,
-  },
+server: {
+  host: "127.0.0.1",
+  port: 3000,
+},
   plugins: [react()],
   resolve: {
     alias: {
