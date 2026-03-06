@@ -5,57 +5,67 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  // Permite OPTIONS (CORS preflight)
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Bloqueia qualquer método que não seja POST
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
+  }
+
+  // Valida assinatura secreta
+  const signature = req.headers.get("x-signature");
+  const secret = Deno.env.get("MP_WEBHOOK_SECRET");
+
+  if (!signature || signature !== secret) {
+    return new Response("Unauthorized", { status: 401 });
   }
 
   try {
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     const body = await req.json();
-    console.log('Webhook received:', JSON.stringify(body, null, 2));
+    console.log("Webhook received:", JSON.stringify(body, null, 2));
 
     const { type, data } = body;
 
     if (!type || !data?.id) {
-      console.log('Invalid webhook payload');
+      console.log("Invalid webhook payload");
       return new Response(
-        JSON.stringify({ message: 'Invalid payload' }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ message: "Invalid payload" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Handle subscription (preapproval) events
-    if (type === 'subscription_preapproval') {
+    if (type === "subscription_preapproval") {
       await handleSubscriptionEvent(supabaseClient, data.id);
     }
 
-    // Handle payment events
-    if (type === 'payment') {
+    if (type === "payment") {
       await handlePaymentEvent(supabaseClient, data.id);
     }
 
-    // Handle merchant_order events (for preference payments)
-    if (type === 'merchant_order') {
+    if (type === "merchant_order") {
       await handleMerchantOrderEvent(supabaseClient, data.id);
     }
 
     return new Response(
-      JSON.stringify({ message: 'Webhook processed successfully' }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ message: "Webhook processed successfully" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error) {
-    console.error('Webhook error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error("Webhook error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: 'Webhook processing failed', details: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: "Webhook processing failed", details: errorMessage }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
@@ -189,23 +199,44 @@ async function handlePaymentEvent(supabaseClient: any, paymentId: string) {
     console.log('Payment details:', payment);
 
     const externalReference = payment.external_reference || '';
+console.log('External reference recebido:', externalReference);
 
-    // Check if this is a landing page lead payment
-    if (externalReference.startsWith('lead_')) {
-      await handleLeadPayment(supabaseClient, payment, externalReference.replace('lead_', ''));
-      break;
-    }
+// Se for lead
+if (externalReference.startsWith('lead_')) {
+  await handleLeadPayment(supabaseClient, payment, externalReference.replace('lead_', ''));
+  break;
+}
 
-    // Find restaurant by external_reference
-    const { data: restaurant } = await supabaseClient
-      .from('restaurants')
-      .select('id, reseller_id')
-      .eq('id', externalReference)
-      .single();
+// Se for restaurante
+const { data: restaurant } = await supabaseClient
+  .from('restaurants')
+  .select('id, reseller_id')
+  .eq('id', externalReference) // external_reference deve ser o id do restaurante
+  .single();
 
-    if (!restaurant) {
-      continue;
-    }
+if (!restaurant) {
+  console.log('Nenhum restaurante encontrado para external_reference:', externalReference);
+  continue;
+}
+
+    // const externalReference = payment.external_reference || '';
+
+    // // Check if this is a landing page lead payment
+    // if (externalReference.startsWith('lead_')) {
+    //   await handleLeadPayment(supabaseClient, payment, externalReference.replace('lead_', ''));
+    //   break;
+    // }
+
+    // // Find restaurant by external_reference
+    // const { data: restaurant } = await supabaseClient
+    //   .from('restaurants')
+    //   .select('id, reseller_id')
+    //   .eq('id', externalReference)
+    //   .single();
+
+    // if (!restaurant) {
+    //   continue;
+    // }
 
     // Map payment status
     let paymentStatus: string;
@@ -229,31 +260,18 @@ async function handlePaymentEvent(supabaseClient: any, paymentId: string) {
         paymentStatus = 'pending';
     }
 
-    // let paymentStatus: string;
-    // switch (payment.status) {
-    //   case 'approved':
-    //     paymentStatus = 'paid';
-    //     break;
-    //   case 'pending':
-    //   case 'in_process':
-    //     paymentStatus = 'pending';
-    //     break;
-    //   case 'rejected':
-    //   case 'cancelled':
-    //     paymentStatus = 'cancelled';
-    //     break;
-    //   default:
-    //     paymentStatus = 'pending';
-    // }
-
     // Create payment record
     const { error: insertError } = await supabaseClient
       .from('subscription_payments')
       .insert({
         restaurant_id: restaurant.id,
         amount: payment.transaction_amount,
-        payment_date: payment.status === 'approved' ? payment.date_approved : null,
-        due_date: payment.date_created,
+        payment_date: payment.status === 'approved' && payment.date_approved
+  ? new Date(payment.date_approved).toISOString()
+  : null,
+due_date: new Date(payment.date_created).toISOString(),
+        // payment_date: payment.status === 'approved' ? payment.date_approved : null,
+        // due_date: payment.date_created,
         status: paymentStatus,
         payment_method: payment.payment_method_id,
         mp_payment_id: paymentId,
@@ -262,6 +280,7 @@ async function handlePaymentEvent(supabaseClient: any, paymentId: string) {
       });
 
     if (insertError) {
+      console.log(`Mapped status: ${payment.status} → ${paymentStatus}`);
       console.error('Error creating payment record:', insertError);
     } else {
       console.log('Payment record created for restaurant:', restaurant.id);
