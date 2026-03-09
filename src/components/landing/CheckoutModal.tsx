@@ -29,14 +29,14 @@ interface CheckoutModalProps {
 
 type CheckoutStep = 'info' | 'payment' | 'success';
 
-export function CheckoutModal({ 
-  isOpen, 
-  onClose, 
-  plan, 
-  primaryColor, 
-  resellerId, 
+export function CheckoutModal({
+  isOpen,
+  onClose,
+  plan,
+  primaryColor,
+  resellerId,
   whatsappLink,
-  mpEnabled = false 
+  mpEnabled = false
 }: CheckoutModalProps) {
   const { toast } = useToast();
   const [step, setStep] = useState<CheckoutStep>('info');
@@ -107,14 +107,14 @@ export function CheckoutModal({
     }
 
     // Check if plan has a valid ID (not mock IDs)
-    if (['basic', 'professional', 'enterprise'].includes(plan.id)) {
-      toast({
-        title: 'Plano de demonstração',
-        description: 'Este é um plano de demonstração. Entre em contato via WhatsApp.',
-        variant: 'destructive',
-      });
-      return;
-    }
+    // if (['basic', 'professional', 'enterprise'].includes(plan.id)) {
+    //   toast({
+    //     title: 'Plano de demonstração',
+    //     description: 'Este é um plano de demonstração. Entre em contato via WhatsApp.',
+    //     variant: 'destructive',
+    //   });
+    //   return;
+    // }
 
     checkout.mutate({
       resellerId,
@@ -137,11 +137,11 @@ export function CheckoutModal({
       `Estabelecimento: ${formData.businessName}\n` +
       `Tipo: ${formData.businessType || 'Não informado'}`
     );
-    
-    const whatsappUrl = whatsappLink.includes('?') 
+
+    const whatsappUrl = whatsappLink.includes('?')
       ? whatsappLink.replace(/text=.*/, `text=${message}`)
       : `${whatsappLink}?text=${message}`;
-    
+
     window.open(whatsappUrl, '_blank');
     setStep('success');
   };
@@ -162,8 +162,10 @@ export function CheckoutModal({
 
   const totalAmount = (plan.setup_fee || 0) + plan.monthly_fee;
   const isValidReseller = resellerId && resellerId !== 'demo';
-  const isValidPlan = plan.id && !['basic', 'professional', 'enterprise'].includes(plan.id);
+  const isValidPlan = !!plan.id;
+  // const isValidPlan = plan.id && !['basic', 'professional', 'enterprise'].includes(plan.id);
   const canUseMercadoPago = mpEnabled && isValidReseller && isValidPlan;
+
 
   return (
     <Dialog open={isOpen} onOpenChange={resetModal}>
@@ -178,7 +180,7 @@ export function CheckoutModal({
 
         {/* Plan Summary */}
         {step !== 'success' && (
-          <div 
+          <div
             className="p-4 rounded-xl mb-4"
             style={{ backgroundColor: `hsl(${primaryColor} / 0.1)` }}
           >
@@ -221,7 +223,7 @@ export function CheckoutModal({
                 onChange={(e) => handleInputChange('name', e.target.value)}
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="email">Email *</Label>
               <Input
@@ -232,7 +234,7 @@ export function CheckoutModal({
                 onChange={(e) => handleInputChange('email', e.target.value)}
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="phone">WhatsApp *</Label>
               <Input
@@ -242,7 +244,7 @@ export function CheckoutModal({
                 onChange={(e) => handleInputChange('phone', e.target.value)}
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="businessName">Nome do estabelecimento *</Label>
               <Input
@@ -252,7 +254,7 @@ export function CheckoutModal({
                 onChange={(e) => handleInputChange('businessName', e.target.value)}
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="businessType">Tipo de negócio</Label>
               <Select
@@ -362,16 +364,16 @@ export function CheckoutModal({
         {/* Step: Success */}
         {step === 'success' && (
           <div className="text-center py-6 space-y-4">
-            <div 
+            <div
               className="w-20 h-20 rounded-full flex items-center justify-center mx-auto"
               style={{ backgroundColor: `hsl(${primaryColor} / 0.1)` }}
             >
-              <Check 
+              <Check
                 className="h-10 w-10"
                 style={{ color: `hsl(${primaryColor})` }}
               />
             </div>
-            
+
             <h3 className="text-xl font-bold">Recebemos seus dados!</h3>
             <p className="text-muted-foreground">
               Nossa equipe entrará em contato em breve pelo WhatsApp para finalizar sua contratação e ativar seu sistema.
